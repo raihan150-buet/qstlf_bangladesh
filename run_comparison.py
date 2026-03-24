@@ -169,7 +169,7 @@ def main():
         "Classical DLinear": CLASSICAL_DIR,
         "ADQRL": QUANTUM_DIR,
         "MSQD": os.path.join(BASE_DIR, "msqd"),
-        "QRC": os.path.join(BASE_DIR, "qrc"),
+        "QMod": os.path.join(BASE_DIR, "qmod"),
     }
 
     results = {}
