@@ -1,0 +1,10 @@
+.env
+outputs/
+wandb/
+__pycache__/
+*.pyc
+*.pth
+*.xlsx
+*.csv
+.ipynb_checkpoints/
+venv/
