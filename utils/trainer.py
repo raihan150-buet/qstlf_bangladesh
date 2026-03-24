@@ -22,8 +22,7 @@ class Trainer:
         self.optimizer = optim.Adam(model.parameters(), lr=config["lr"])
         self.criterion = nn.MSELoss()
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode='min', factor=0.5, patience=5, verbose=False
-        )
+            self.optimizer, mode='min', factor=0.5, patience=5)
 
         self.best_val_loss = float('inf')
         self.best_epoch = 0
