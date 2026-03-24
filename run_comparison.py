@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import json
 import numpy as np
 import pandas as pd
@@ -167,6 +169,7 @@ def main():
         "Classical DLinear": CLASSICAL_DIR,
         "ADQRL": QUANTUM_DIR,
         "MSQD": os.path.join(BASE_DIR, "msqd"),
+        "QRC": os.path.join(BASE_DIR, "qrc"),
     }
 
     results = {}
