@@ -35,8 +35,9 @@ class QuantumLayer(nn.Module):
 
         @qml.qnode(dev, interface='torch', diff_method='backprop')
         def circuit(inputs, weights):
-            qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation='Y')
-            qml.StronglyEntanglingLayers(weights, wires=range(n_qubits))
+            for l in range(n_qlayers):
+                qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation='Y')
+                qml.StronglyEntanglingLayers(weights[l:l+1], wires=range(n_qubits))
             return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
 
         self.q_layer = qml.qnn.TorchLayer(circuit, {"weights": (n_qlayers, n_qubits, 3)})
