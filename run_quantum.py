@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import json
 import wandb
 import torch
@@ -133,7 +134,9 @@ def main():
     p = plot_hourly_error(hourly,
                           os.path.join(fig_dir, "hourly_error.png"),
                           tag="ADQRL")
-    run.log({"figures/hourly_error": wandb.Image(p)})
+    if p:
+        if p:
+            run.log({"figures/hourly_error": wandb.Image(p)})
 
     with open(os.path.join(QUANTUM_DIR, "test_metrics.json"), "w") as f:
         json.dump(metrics, f, indent=2)

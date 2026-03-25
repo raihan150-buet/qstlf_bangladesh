@@ -18,15 +18,25 @@ plt.rcParams.update({
 })
 
 
+def _horizon_label(pred_len):
+    if pred_len == 1:
+        return "Next-Hour"
+    return f"{pred_len}h Day-Ahead"
+
+
 def plot_forecast_window(dates, actuals, preds, save_path, tag="Model",
                          n_points=336, color='steelblue'):
     n = min(n_points, len(dates))
+    horizon = actuals.shape[1] if actuals.ndim > 1 else 1
+    a = actuals[:n, -1] if actuals.ndim > 1 else actuals[:n]
+    p = preds[:n, -1] if preds.ndim > 1 else preds[:n]
+
     fig, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(dates[:n], actuals[:n, -1], color='black', label='Actual', linewidth=1.0)
-    ax.plot(dates[:n], preds[:n, -1], color=color, label=tag, linewidth=1.0, linestyle='--')
+    ax.plot(dates[:n], a, color='black', label='Actual', linewidth=1.0)
+    ax.plot(dates[:n], p, color=color, label=tag, linewidth=1.0, linestyle='--')
     ax.set_xlabel('Date')
     ax.set_ylabel('Demand (MW)')
-    ax.set_title(f'{tag} — Day-Ahead Forecast ({n}-Hour Window)')
+    ax.set_title(f'{tag} — {_horizon_label(horizon)} Forecast ({n}-Hour Window)')
     ax.legend()
     ax.grid(True, alpha=0.25)
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%b'))
@@ -55,10 +65,13 @@ def plot_residual_distribution(actuals, preds, save_path, tag="Model", color='st
 
 
 def plot_monthly_grid(dates, actuals, preds, save_path, tag="Model"):
+    a = actuals[:, -1] if actuals.ndim > 1 else actuals
+    p = preds[:, -1] if preds.ndim > 1 else preds
+
     df = pd.DataFrame({
         'date': dates,
-        'actual': actuals[:, -1],
-        'predicted': preds[:, -1],
+        'actual': a,
+        'predicted': p,
     })
     df['ym'] = df['date'].dt.to_period('M')
     months = df['ym'].unique()[-12:]
@@ -124,6 +137,9 @@ def plot_scatter(actuals, preds, save_path, tag="Model"):
 
 
 def plot_hourly_error(hourly_metrics, save_path, tag="Model"):
+    if len(hourly_metrics) <= 1:
+        return None
+
     hours = [m['hour'] for m in hourly_metrics]
     rmses = [m['rmse'] for m in hourly_metrics]
     maes = [m['mae'] for m in hourly_metrics]

@@ -140,7 +140,9 @@ def main():
     p = plot_hourly_error(hourly,
                           os.path.join(fig_dir, "hourly_error.png"),
                           tag="QMod")
-    run.log({"figures/hourly_error": wandb.Image(p)})
+    if p:
+        if p:
+            run.log({"figures/hourly_error": wandb.Image(p)})
 
     with open(os.path.join(save_dir, "test_metrics.json"), "w") as f:
         json.dump(metrics, f, indent=2)

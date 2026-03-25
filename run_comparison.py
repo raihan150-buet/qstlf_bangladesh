@@ -206,7 +206,8 @@ def main():
     print(f"  Saved: {p}")
 
     # generate latex tables
-    latex_main = generate_latex_table(results, caption="Performance Comparison of Proposed Models")
+    h_label = "Next-Hour" if FORECAST_HORIZON == 1 else f"{FORECAST_HORIZON}h Day-Ahead"
+    latex_main = generate_latex_table(results, caption=f"Performance Comparison — {h_label} Forecast")
     latex_improve = generate_improvement_table(results, baseline_name="Classical DLinear")
 
     with open(os.path.join(COMPARISON_DIR, "table_comparison.tex"), "w") as f:
