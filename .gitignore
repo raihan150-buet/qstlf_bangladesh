@@ -9,3 +9,5 @@ __pycache__/
 .ipynb_checkpoints/
 venv/
 .vscode/
+outputs_1h/
+configs/config.py
