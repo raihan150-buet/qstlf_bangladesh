@@ -170,6 +170,7 @@ def main():
         "ADQRL": QUANTUM_DIR,
         "MSQD": os.path.join(BASE_DIR, "msqd"),
         "QMod": os.path.join(BASE_DIR, "qmod"),
+        "LAQ": os.path.join(BASE_DIR, "laq"),
     }
 
     results = {}
