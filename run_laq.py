@@ -53,7 +53,7 @@ def main():
         lag_positions=LAQ_LAGS,
     )
 
-    print(f"Lag positions used: {model.lag_offsets}")
+    print(f"Lag positions (hours back): {LAQ_LAGS}")
     print(f"Number of lag features: {len(model.lag_offsets)}")
 
     run_config = {
