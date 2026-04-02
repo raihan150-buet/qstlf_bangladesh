@@ -28,6 +28,10 @@ N_QUBITS = 4
 N_QLAYERS = 2
 CONTEXT_SIZE = 32
 
+# LAQ lag positions (identified via PACF analysis on training data)
+# short-term: 1-6, daily cycle: 23-25, weekly cycle: 167-168
+LAQ_LAGS = [1, 2, 3, 4, 5, 6, 23, 24, 25, 167, 168]
+
 # wandb
 WANDB_PROJECT = "STLF_Quantum_DLinear_next_hour"
 WANDB_ENTITY = None  # set your wandb username or team name

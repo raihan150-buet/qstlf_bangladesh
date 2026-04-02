@@ -45,7 +45,7 @@ def load_model(model_type, n_features, mode=None):
     elif model_type == "laq":
         from models.laq import LAQ
         return LAQ(n_features, FORECAST_HORIZON, SEQ_LENGTH, KERNEL_SIZE,
-                   N_QUBITS, N_QLAYERS)
+                   N_QUBITS, N_QLAYERS, lag_positions=LAQ_LAGS)
 
     elif model_type == "ablation":
         from models.ablation_variants import AblationADQRL

@@ -50,6 +50,7 @@ def main():
         kernel_size=KERNEL_SIZE,
         n_qubits=N_QUBITS,
         n_qlayers=N_QLAYERS,
+        lag_positions=LAQ_LAGS,
     )
 
     print(f"Lag positions used: {model.lag_offsets}")

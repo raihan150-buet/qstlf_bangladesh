@@ -41,18 +41,17 @@ class LAQ(nn.Module):
     Single VQC call. Fewer parameters than ADQRL (no time_adapter, smaller compressor).
     """
     def __init__(self, n_features, pred_len, seq_len=168, kernel_size=25,
-                 n_qubits=4, n_qlayers=2):
+                 n_qubits=4, n_qlayers=2, lag_positions=None):
         super().__init__()
         self.seq_len = seq_len
         self.pred_len = pred_len
         self.n_features = n_features
         self.n_qubits = n_qubits
 
-        # lag positions relative to end of sequence (0-indexed from end)
-        # short-term: last 6 values
-        # daily: ~24h ago
-        # weekly: ~168h ago (start of sequence)
-        self.lag_offsets = self._build_lag_offsets(seq_len)
+        if lag_positions is None:
+            lag_positions = [1, 2, 3, 4, 5, 6, 23, 24, 25, 167, 168]
+        # convert lag offsets (e.g. lag=1 means t-1) to sequence indices
+        self.lag_offsets = [seq_len - lag for lag in lag_positions if lag <= seq_len]
 
         self.decomp = AdaptiveSeriesDecomp(kernel_size, n_features)
         self.trend_linear = nn.Linear(seq_len, pred_len)
@@ -72,22 +71,6 @@ class LAQ(nn.Module):
         )
 
         self.fusion_alpha = nn.Parameter(torch.tensor([0.5]))
-
-    def _build_lag_offsets(self, seq_len):
-        offsets = []
-        # short-term lags: t-1 to t-6 (positions from end: -1, -2, ..., -6)
-        for i in range(1, 7):
-            if i <= seq_len:
-                offsets.append(seq_len - i)
-        # daily lags: t-23, t-24, t-25
-        for i in [23, 24, 25]:
-            if i <= seq_len:
-                offsets.append(seq_len - i)
-        # weekly lags: t-167, t-168
-        for i in [167, 168]:
-            if i <= seq_len:
-                offsets.append(seq_len - i)
-        return offsets
 
     def _extract_lags(self, x):
         # x: (B, L, C) — extract demand column (last feature) at lag positions
