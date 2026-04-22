@@ -63,7 +63,7 @@ class QuantumReservoir(nn.Module):
         for i in range(x.shape[0]):
             result = self.circuit(x[i], self.fixed_weights)
             batch_results.append(torch.stack(result))
-        return torch.stack(batch_results)  # (B, n_qubits * 3)
+        return torch.stack(batch_results).float()  # (B, n_qubits * 3)
 
 
 class QRes(nn.Module):
