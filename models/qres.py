@@ -148,7 +148,10 @@ class QRes(nn.Module):
         lag_vals = demand[:, self.lag_indices]
         q_in = self.lag_compressor(lag_vals) * np.pi
 
-        reservoir_features = self.reservoir(q_in)  # (B, n_qubits*3)
+        with torch.no_grad():
+            reservoir_features = self.reservoir(q_in).float()
+        reservoir_features = reservoir_features.detach()
+        reservoir_features.requires_grad_(True)  # (B, n_qubits*3)
         modulation = self.readout(reservoir_features)
 
         seasonal_out = seasonal_base * (1.0 + modulation.unsqueeze(-1))
