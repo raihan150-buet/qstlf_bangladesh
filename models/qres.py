@@ -11,59 +11,52 @@ class QuantumReservoir(nn.Module):
     Fixed (non-trainable) quantum circuit used as a nonlinear feature expander.
 
     Maps n_qubits classical inputs to 3*n_qubits expectation values by measuring
-    PauliX, PauliY, PauliZ on each qubit. The circuit parameters are randomly
-    initialized once and frozen — only the classical layers around it are trained.
-
-    This is the quantum reservoir computing paradigm: the quantum system provides
-    a rich, high-dimensional nonlinear mapping that a simple linear readout can
-    learn to exploit. No quantum gradients needed, so it's much faster than VQC
-    training.
+    PauliX, PauliY, PauliZ on each qubit via three separate circuits.
+    The reservoir weights are randomly initialized once and frozen.
+    Uses TorchLayer for efficient batch processing (same speed as ADQRL).
     """
     def __init__(self, n_qubits, n_layers, seed=42):
         super().__init__()
         self.n_qubits = n_qubits
         self.n_outputs = n_qubits * 3
 
-        dev = qml.device("default.qubit", wires=n_qubits)
-
-        # fixed random reservoir weights
         rng = np.random.RandomState(seed)
-        fixed_weights = rng.uniform(0, 2 * np.pi, (n_layers, n_qubits, 3))
-        self.fixed_weights = torch.tensor(fixed_weights, dtype=torch.float32)
 
-        @qml.qnode(dev, interface='torch', diff_method=None)
-        def reservoir_circuit(inputs, res_weights):
-            # data encoding with re-uploading through reservoir layers
-            for l in range(n_layers):
-                qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation='Y')
-                # fixed entangling structure
-                for i in range(n_qubits):
-                    qml.RX(res_weights[l, i, 0], wires=i)
-                    qml.RY(res_weights[l, i, 1], wires=i)
-                    qml.RZ(res_weights[l, i, 2], wires=i)
-                for i in range(n_qubits - 1):
-                    qml.CNOT(wires=[i, i + 1])
-                qml.CNOT(wires=[n_qubits - 1, 0])
+        def make_circuit(pauli_obs):
+            dev = qml.device("default.qubit", wires=n_qubits)
 
-            # measure all three Pauli observables on each qubit
-            observables = []
-            for i in range(n_qubits):
-                observables.append(qml.expval(qml.PauliX(i)))
-            for i in range(n_qubits):
-                observables.append(qml.expval(qml.PauliY(i)))
-            for i in range(n_qubits):
-                observables.append(qml.expval(qml.PauliZ(i)))
-            return observables
+            @qml.qnode(dev, interface='torch', diff_method='backprop')
+            def circuit(inputs, weights):
+                for l in range(n_layers):
+                    qml.AngleEmbedding(inputs, wires=range(n_qubits), rotation='Y')
+                    qml.StronglyEntanglingLayers(weights[l:l+1], wires=range(n_qubits))
+                return [qml.expval(pauli_obs(i)) for i in range(n_qubits)]
 
-        self.circuit = reservoir_circuit
+            return circuit
+
+        self.circuit_x = qml.qnn.TorchLayer(
+            make_circuit(qml.PauliX),
+            {"weights": (n_layers, n_qubits, 3)}
+        )
+        self.circuit_y = qml.qnn.TorchLayer(
+            make_circuit(qml.PauliY),
+            {"weights": (n_layers, n_qubits, 3)}
+        )
+        self.circuit_z = qml.qnn.TorchLayer(
+            make_circuit(qml.PauliZ),
+            {"weights": (n_layers, n_qubits, 3)}
+        )
+
+        # freeze all quantum parameters
+        for p in self.parameters():
+            p.requires_grad = False
 
     def forward(self, x):
         # x: (B, n_qubits)
-        batch_results = []
-        for i in range(x.shape[0]):
-            result = self.circuit(x[i], self.fixed_weights)
-            batch_results.append(torch.stack(result))
-        return torch.stack(batch_results).float()  # (B, n_qubits * 3)
+        out_x = self.circuit_x(x)
+        out_y = self.circuit_y(x)
+        out_z = self.circuit_z(x)
+        return torch.cat([out_x, out_y, out_z], dim=-1).float()
 
 
 class QRes(nn.Module):
@@ -148,10 +141,7 @@ class QRes(nn.Module):
         lag_vals = demand[:, self.lag_indices]
         q_in = self.lag_compressor(lag_vals) * np.pi
 
-        with torch.no_grad():
-            reservoir_features = self.reservoir(q_in).float()
-        reservoir_features = reservoir_features.detach()
-        reservoir_features.requires_grad_(True)  # (B, n_qubits*3)
+        reservoir_features = self.reservoir(q_in)  # (B, n_qubits*3)
         modulation = self.readout(reservoir_features)
 
         seasonal_out = seasonal_base * (1.0 + modulation.unsqueeze(-1))
