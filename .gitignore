@@ -10,4 +10,4 @@ __pycache__/
 venv/
 .vscode/
 outputs_1h/
-configs/config.py
+configs/
