@@ -15,7 +15,7 @@ else:
 DATA_PATH = "selected_features.xlsx"
 
 SEQ_LENGTH = 168
-FORECAST_HORIZON = 1
+FORECAST_HORIZON = 24
 BATCH_SIZE = 32
 LEARNING_RATE = 0.005
 EPOCHS = 50
@@ -33,11 +33,11 @@ CONTEXT_SIZE = 32
 LAQ_LAGS = [1, 2, 3, 4, 5, 6, 23, 24, 25, 167, 168]
 
 # wandb
-WANDB_PROJECT = "STLF_Quantum_DLinear_next_hour"
+WANDB_PROJECT = "STLF_SOTA_Vs_QDLinear"
 WANDB_ENTITY = None  # set your wandb username or team name
 
 # output dirs
-BASE_DIR = "outputs_1h"
+BASE_DIR = "outputs"
 CLASSICAL_DIR = os.path.join(BASE_DIR, "classical_dlinear")
 QUANTUM_DIR = os.path.join(BASE_DIR, "quantum_adqrl")
 ABLATION_DIR = os.path.join(BASE_DIR, "ablation")

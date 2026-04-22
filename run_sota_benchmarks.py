@@ -455,6 +455,7 @@ def main():
             )
 
             ckpt_path = os.path.join(SOTA_DIR, "checkpoints", f"{model_name}_best.pth")
+            CONFIG = wandb.config
             torch.save({"model_state": model.state_dict(), "config": CONFIG}, ckpt_path)
 
         print(f"\n  Results:")
