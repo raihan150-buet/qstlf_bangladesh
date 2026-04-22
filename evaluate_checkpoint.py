@@ -46,6 +46,16 @@ def load_model(model_type, n_features, mode=None):
         from models.laq import LAQ
         return LAQ(n_features, FORECAST_HORIZON, SEQ_LENGTH, KERNEL_SIZE,
                    N_QUBITS, N_QLAYERS, lag_positions=LAQ_LAGS)
+    elif model_type == "qdgru":
+        from models.qdgru import QDGRU
+        return QDGRU(n_features, FORECAST_HORIZON, SEQ_LENGTH, KERNEL_SIZE,
+                     N_QUBITS, N_QLAYERS, lag_positions=LAQ_LAGS,
+                     context_size=CONTEXT_SIZE)
+    elif model_type == "qres":
+        from models.qres import QRes
+        return QRes(n_features, FORECAST_HORIZON, SEQ_LENGTH, KERNEL_SIZE,
+                    N_QUBITS, n_reservoir_layers=3, lag_positions=LAQ_LAGS,
+                    seed=SEED)
 
     elif model_type == "ablation":
         from models.ablation_variants import AblationADQRL
@@ -60,7 +70,7 @@ def load_model(model_type, n_features, mode=None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True, choices=["classical", "adqrl", "msqd", "qmod", "laq", "ablation"])
+    parser.add_argument("--model", required=True, choices=["classical", "adqrl", "msqd", "qmod", "laq","qdgru","qres","ablation"])
     parser.add_argument("--checkpoint", required=True, help="Path to .pth checkpoint file")
     parser.add_argument("--mode", default=None, help="Ablation mode (only for --model ablation)")
     args = parser.parse_args()

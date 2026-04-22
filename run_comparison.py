@@ -171,6 +171,8 @@ def main():
         "MSQD": os.path.join(BASE_DIR, "msqd"),
         "QMod": os.path.join(BASE_DIR, "qmod"),
         "LAQ": os.path.join(BASE_DIR, "laq"),
+        "QDGRU": os.path.join(BASE_DIR, "qdgru"),
+        "QRes": os.path.join(BASE_DIR, "qres"),
     }
 
     results = {}
